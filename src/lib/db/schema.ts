@@ -8,6 +8,9 @@ import {
     varchar,
   } from "drizzle-orm/pg-core";
   
+// drizzle-orm
+// drizzle-kit
+
   export const userSystemEnum = pgEnum("user_system_enum", ["system", "user"]);
   
   export const chats = pgTable("chats", {
