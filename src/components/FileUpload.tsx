@@ -1,10 +1,23 @@
 "use client";
 import { uploadToS3 } from "@/lib/s3";
+import { useMutation } from "@tanstack/react-query";
 import { Inbox } from "lucide-react";
 import React from "react";
 import { useDropzone } from "react-dropzone";
+import axios from 'axios';
 
 const FileUpload = () => {
+
+  const { mutate } = useMutation({
+    mutationFn: async ({ file_key, file_name }: { file_key: string, file_name: string }) => {
+      const response = await axios.post('/api/create-chat', {
+        file_key,
+        file_name
+      });
+      return response.data;
+    }
+  });
+
   const { getRootProps, getInputProps } = useDropzone({
     accept: {
       "application/pdf": [".pdf"], // Accept only PDF files
@@ -12,7 +25,7 @@ const FileUpload = () => {
     onDrop: async (acceptedFiles) => {
       console.log("Accepted files:", acceptedFiles);
       const file = acceptedFiles[0]
-      if(file.size > 10 * 1024 * 1024){
+      if (file.size > 10 * 1024 * 1024) {
         //bigger than 10 mb...
 
         alert('please upload a smaller file')
@@ -22,10 +35,23 @@ const FileUpload = () => {
       try {
         const data = await uploadToS3(file);
         console.log('data', data);
-        
+        if (!data?.file_key || !data?.file_name) {
+          alert("kuch gadbad hui hai");
+          return;
+        }
+        mutate(data, {
+          onSuccess: (data) => {
+            console.log(data);
+          }, 
+          onError: (err) => {
+            console.log(err);
+
+          }
+        })
+
       } catch (error) {
         console.log(error)
-      } 
+      }
     },
   });
 
